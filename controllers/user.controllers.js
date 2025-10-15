@@ -230,19 +230,23 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
   // Extract Old and New Password from req.body
   const { oldPassword, newPassword } = req.body;
+  console.log(oldPassword, "-----", newPassword);
+  // console.log(req.user);
+  // console.log(req.user._id);
   // find user from the DB using req.user which we saved while doing login
-  const user = await User.findById(req.user?._id);
-  if (!user) {
+  const newUser = await User.findById(req.user?._id);
+  if (!newUser) {
     throw new ApiError(401, "Unauthorized User");
   }
   // compare old password using method isPasswordCorrect
-  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  const isPasswordCorrect = await newUser.isPasswordCorrect(oldPassword);
+  console.log("isPasswordCorrect :--->", isPasswordCorrect);
   if (!isPasswordCorrect) {
     throw new ApiError(400, "Invalid Old Password");
   }
   // replce old password of DB with new
-  user.password = newPassword;
-  await user.save({ validateBforeSave: false });
+  newUser.password = newPassword;
+  await newUser.save({ validateBforeSave: false });
   // send response
   return res
     .status(200)
@@ -364,6 +368,83 @@ const uodateUserCoverImage = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Cover Image updated Successfully"));
+});
+
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  // extract userName from req.params
+  // find user from the DB using aggregate function using userName
+
+  // send response
+  //----------------------------------//
+  // extract userName from req.params
+  const { userName } = req.params;
+  if (!userName?.trim()) {
+    throw new ApiError(400, "UserName is missing");
+  }
+
+  // find user from the DB using aggregate function using userName
+  const channel = await User.aggregate([
+    {
+      $match: {
+        userName: userName?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+        channelsSubscribedToCount: {
+          $size: "$subscribedTo",
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        userName: 1,
+        fullName: 1,
+        email: 1,
+        avatar: 1,
+        coverImage: 1,
+        subscribersCount: 1,
+        channelsSubscribedToCount: 1,
+        isSubscribed: 1,
+      },
+    },
+  ]);
+  if (!channel?.length) {
+    throw new ApiError(404, "Channel does not exist");
+  }
+
+  // send response
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, channel[0], "User Channel fetched Successfully")
+    );
 });
 
 const forgotPassword = asyncHandler(async (req, res) => {});
