@@ -249,6 +249,47 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password CHnaged Successfully"));
 });
 
+const updateAccount = asyncHandler(async (req, res) => {
+  // get details for update from the body
+  // find and update user from the DB using req.user which we saved while doing login
+  // send response
+  //-------------------------------//
+  // get details for update from the body
+  const { fullName, email } = req.body;
+  // find and update user from the DB using req.user which we saved while doing login
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        fullName,
+        email: email,
+      },
+    },
+    { new: true }
+  ).select("-password");
+  if (!user) {
+    throw new ApiError(401, "Unauthorized user");
+  }
+  // send response
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Account Successfully Updated"));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  // find user from the DB using req.user which we saved while doing login
+  // send response
+  //--------------------------------------//
+  // find user from the DB using req.user which we saved while doing login
+  const user = User.findById(req.user?._id).select("-password");
+  if (!user) {
+    throw new ApiError(401, "Unauthorized user");
+  }
+  // send response
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User Found Successfully"));
+});
 const forgotPassword = asyncHandler(async (req, res) => {});
 export {
   registerUser,
@@ -257,4 +298,6 @@ export {
   refreshAccessToken,
   forgotPassword,
   changeCurrentPassword,
+  getCurrentUser,
+  updateAccount,
 };

@@ -1,4 +1,5 @@
 import {
+  changeCurrentPassword,
   loginUser,
   logOutUser,
   refreshAccessToken,
@@ -30,6 +31,7 @@ router.route("/login").post(loginUser);
 
 router.route("/logout").post(JwtVerify, logOutUser);
 router.route("/refresh-token").post(refreshAccessToken);
+router.route("/change-password").post(changeCurrentPassword);
 
 // router.get("/login", loginUser);
 
