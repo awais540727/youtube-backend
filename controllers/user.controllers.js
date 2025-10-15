@@ -373,11 +373,12 @@ const uodateUserCoverImage = asyncHandler(async (req, res) => {
 const getUserChannelProfile = asyncHandler(async (req, res) => {
   // extract userName from req.params
   // find user from the DB using aggregate function using userName
-
   // send response
   //----------------------------------//
   // extract userName from req.params
+  console.log(req.params);
   const { userName } = req.params;
+  // console.log(userName);
   if (!userName?.trim()) {
     throw new ApiError(400, "UserName is missing");
   }
@@ -386,7 +387,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   const channel = await User.aggregate([
     {
       $match: {
-        userName: userName?.toLowerCase(),
+        userName: userName?.trim().toLowerCase(),
       },
     },
     {
@@ -438,7 +439,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   if (!channel?.length) {
     throw new ApiError(404, "Channel does not exist");
   }
-
   // send response
   return res
     .status(200)
@@ -459,4 +459,5 @@ export {
   updateAccount,
   uodateUserAvatar,
   uodateUserCoverImage,
+  getUserChannelProfile,
 };
