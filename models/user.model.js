@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 const userSchema = new mongoose.Schema(
   {
-    username: {
+    userName: {
       type: String,
       required: true,
       unique: true,
@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       index: true,
     },
-    fullname: {
+    fullName: {
       type: String,
       trim: true,
       lowercase: true,
@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    coverimage: {
+    coverImage: {
       type: String,
     },
     watchHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
@@ -51,6 +51,8 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
+  // console.log("Pass--->", password);
+  // console.log("Old ---->", this.password);
   return await bcrypt.compare(password, this.password);
 };
 userSchema.methods.createRefreshToken = function () {

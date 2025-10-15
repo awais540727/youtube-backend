@@ -1,5 +1,6 @@
 const asyncHandler = (requestHandler) => {
-  (req, res, next) => {
+  return (req, res, next) => {
+    // console.log("Hello I am async handler wraper");
     Promise.resolve(requestHandler(req, res, next)).catch((error) =>
       next(error)
     );
