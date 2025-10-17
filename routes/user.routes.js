@@ -1,10 +1,13 @@
 import {
   changeCurrentPassword,
+  getCurrentUser,
   getUserChannelProfile,
   loginUser,
   logOutUser,
   refreshAccessToken,
   registerUser,
+  uodateUserAvatar,
+  updateAccount,
 } from "../controllers/user.controllers.js";
 import express from "express";
 import { upload } from "../middleware/multer.middleware.js";
@@ -33,8 +36,6 @@ router.route("/login").post(loginUser);
 router.route("/logout").post(JwtVerify, logOutUser);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/change-password").post(JwtVerify, changeCurrentPassword);
-// router.route("/user-profile/:userName").get(getUserChannelProfile);
-router.route("/user-profile/:userName").get(JwtVerify, getUserChannelProfile);
 
 // router.get("/login", loginUser);
 

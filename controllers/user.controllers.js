@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinar } from "../utils/Cloudinary.js";
 import JWT from "jsonwebtoken";
+import mongoose from "mongoose";
 const generateAccessAndRefreshTokens = async (uderId) => {
   try {
     const user = await User.findById(uderId);
@@ -376,7 +377,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   // send response
   //----------------------------------//
   // extract userName from req.params
-  console.log(req.params);
+  // console.log(req.params);
   const { userName } = req.params;
   // console.log(userName);
   if (!userName?.trim()) {
@@ -447,17 +448,70 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     );
 });
 
-const forgotPassword = asyncHandler(async (req, res) => {});
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user?._id),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                    avatar: 1,
+                    userName: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        user[0].watchHistory,
+        "Watch History get Successfully"
+      )
+    );
+});
+
 export {
   registerUser,
   loginUser,
   logOutUser,
   refreshAccessToken,
-  forgotPassword,
   changeCurrentPassword,
   getCurrentUser,
   updateAccount,
   uodateUserAvatar,
   uodateUserCoverImage,
   getUserChannelProfile,
+  getWatchHistory,
 };
