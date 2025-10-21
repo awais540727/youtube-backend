@@ -347,7 +347,7 @@ const updateVideoFile = asyncHandler(async (req, res) => {
     videoId,
     {
       videoFile: updatevideoFile.url,
-      videoFile_public_id: updatevideoFile.videoFile_public_id,
+      videoFile_public_id: updatevideoFile.public_id,
     },
     {
       new: true,
