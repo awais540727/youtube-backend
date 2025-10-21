@@ -5,7 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinar } from "../utils/Cloudinary.js";
 import { Video } from "../models/video.model.js";
-
+import { v2 as cloudinary } from "cloudinary";
 const getAllVideos = asyncHandler(async (req, res) => {
   const videos = await Video.aggregate([
     {
@@ -153,7 +153,9 @@ const publishAVideo = asyncHandler(async (req, res) => {
     title,
     description,
     thumbnail: thumbnail.url,
+    thumbnail_public_id: thumbnail.public_id,
     videoFile: videoFile.url,
+    videoFile_public_id: videoFile.public_id,
     owner: req.user?._id,
     isPublished: 1,
     duration: videoFile.duration,
@@ -228,4 +230,57 @@ const getVideoById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, video[0], "Video fetched Successfully"));
 });
 
-export { getAllVideos, publishAVideo, getVideoById };
+// const updateVideo = asyncHandler(async (req, res) => {
+//   const { videoId } = req.params;
+//   //TODO: update video details like title, description, thumbnail
+// });
+
+const deleteVideo = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  if (!videoId) {
+    throw new ApiError(400, "Video Id is not found");
+  }
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new ApiError(404, "Video does not found");
+  }
+  if (video.owner.toString() !== req.user?._id.toString()) {
+    throw new ApiError(403, "You are not authorized to delete this video");
+  }
+  // Delete video from Cloudinary
+  try {
+    // Delete video file
+    await cloudinary.uploader.destroy(video.videoFile_public_id, {
+      resource_type: "video",
+    });
+
+    // Delete thumbnail
+    await cloudinary.uploader.destroy(video.thumbnail_public_id);
+  } catch (error) {
+    console.error("Cloudinary delete error:", error?.message);
+    throw new ApiError(500, "Failed to delete files from Cloudinary");
+  }
+
+  const deletedVideo = await Video.findByIdAndDelete(videoId);
+  const checkVideo = await Video.findById(videoId);
+  if (checkVideo) {
+    throw new ApiError(502, "Something went wrong while deleting the video");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, deletedVideo, "Video Deleted Successfully"));
+  //TODO: delete video
+});
+
+// const togglePublishStatus = asyncHandler(async (req, res) => {
+//   const { videoId } = req.params;
+// });
+
+export {
+  getAllVideos,
+  publishAVideo,
+  getVideoById,
+  // updateVideo,
+  deleteVideo,
+  // togglePublishStatus,
+};

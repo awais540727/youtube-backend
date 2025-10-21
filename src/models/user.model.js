@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       required: true,
     },
+    // ownerVideos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
     avatar: {
       type: String,
       required: true,

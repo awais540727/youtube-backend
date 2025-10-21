@@ -6,6 +6,7 @@ import express from "express";
 import { JwtVerify } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
 import {
+  deleteVideo,
   getAllVideos,
   getVideoById,
   publishAVideo,
@@ -32,5 +33,7 @@ router.route("/new-video").post(
 );
 
 router.route("/:videoId").get(getVideoById);
+router.route("/:videoId").delete(deleteVideo);
+//   .patch(upload.single("thumbnail"), updateVideo);
 
 export default router;
