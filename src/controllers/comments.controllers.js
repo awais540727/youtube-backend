@@ -160,4 +160,101 @@ const addComment = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, result[0], "Commented Successfully"));
 });
 
-export { getVideoComments, addComment };
+const updateComment = asyncHandler(async (req, res) => {
+  // TODO: update a comment
+  // get the commentId and comment content
+  // validate it
+  // find the comment form the DB and update
+  // send response
+
+  //----------------------------//
+  // get the commentId
+  const { commentId } = req.params;
+  const { content } = req.body;
+  if (!content) {
+    throw new ApiError(401, "Content is missing");
+  }
+  if (!commentId) {
+    throw new ApiError(401, "Comment id is missing");
+  }
+  // find the comment form the DB and update
+  const update = await Comment.findByIdAndUpdate(
+    commentId,
+    {
+      content,
+    },
+    { new: true }
+  );
+  // show owner details with update
+  const result = await Comment.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(commentId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerDetails",
+        pipeline: [
+          {
+            $project: {
+              fullName: 1,
+              userName: 1,
+              avatar: 1,
+              _id: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$ownerDetails",
+    },
+    {
+      $project: {
+        content: 1,
+        video: 1,
+        owner: 1,
+        createdAt: 1,
+        ownerDetails: 1,
+      },
+    },
+  ]);
+  // send response
+  return res
+    .status(200)
+    .json(new ApiResponse(200, result[0], "Updated Successfully"));
+});
+
+const deleteComment = asyncHandler(async (req, res) => {
+  // TODO: delete a comment
+  // get comment id and validate it
+  // find comment in the DB
+  // validate the user
+  // delete the comment
+  //-----------------------------------//
+  // get comment id and validate it
+  const { commentId } = req.params;
+  if (!commentId) {
+    throw new ApiError(401, "Comment is is missing");
+  }
+  // find comment in the DB
+  const comment = await Comment.findById(commentId);
+  if (!comment || !comment.content) {
+    throw new ApiError(404, "Comment did not found");
+  }
+  // validate the user
+  if (comment.owner.toString() !== req.user?._id.toString()) {
+    throw new ApiError(401, "Unauthorized user");
+  }
+  // delete the comment
+  const deletedComment = await Comment.findByIdAndDelete(commentId);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, deletedComment, "Deleted Successfully"));
+});
+
+export { getVideoComments, addComment, updateComment, deleteComment };
