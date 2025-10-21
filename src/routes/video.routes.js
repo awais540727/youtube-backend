@@ -10,6 +10,9 @@ import {
   getAllVideos,
   getVideoById,
   publishAVideo,
+  updateVideo,
+  updateVideoFile,
+  updateVideoThumbnail,
 } from "../controllers/video.controllers.js";
 
 const router = express.Router();
@@ -34,6 +37,12 @@ router.route("/new-video").post(
 
 router.route("/:videoId").get(getVideoById);
 router.route("/:videoId").delete(deleteVideo);
-//   .patch(upload.single("thumbnail"), updateVideo);
+router.route("/:videoId").patch(updateVideo);
+router
+  .route("/thumbnail/:videoId")
+  .patch(upload.single("thumbnail"), updateVideoThumbnail);
+router
+  .route("/videoFile/:videoId")
+  .patch(upload.single("videoFile"), updateVideoFile);
 
 export default router;

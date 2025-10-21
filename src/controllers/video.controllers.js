@@ -230,10 +230,205 @@ const getVideoById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, video[0], "Video fetched Successfully"));
 });
 
-// const updateVideo = asyncHandler(async (req, res) => {
-//   const { videoId } = req.params;
-//   //TODO: update video details like title, description, thumbnail
-// });
+const updateVideoThumbnail = asyncHandler(async (req, res) => {
+  // get the video id from req.params
+  // validate video id
+  // get video from the DB using video id
+  // validate the video
+  // validate the user wheather is it the right user who is performing update functionality
+  // get the thumbnail and videoFile from req.file?.path if you want to update
+  // delete the thumbnail and videoFile from the cloudinary
+  // upload new thumbnail and videoFile on Cloudinary
+  // send response
+  //------------------------------//
+  // get the video id from req.params
+  const { videoId } = req.params;
+  // validate video id
+  if (!videoId) {
+    throw new ApiError(501, "Video Id is not found");
+  }
+  // get video from the DB using video id
+  const video = await Video.findById(videoId);
+  // validate the video
+  if (!video) {
+    throw new ApiError(501, "Video is not found");
+  }
+  // validate the user wheather is it the write user who is performing update functionality
+  if (video.owner.toString() !== req.user?._id.toString()) {
+    throw new ApiError(403, "You are not authorized to Update this video");
+  }
+  // get the thumbnail from req.file?.path if you want to update
+  const thumbnailLocalPath = req.file?.path;
+  if (!thumbnailLocalPath) {
+    throw new ApiError(502, "Thumbnail is missing");
+  }
+  // delete the thumbnail from the cloudinary
+  if (video.thumbnail_public_id) {
+    await cloudinary.uploader.destroy(video.thumbnail_public_id);
+    console.log("Deleted From Cloudinary Successfully");
+  }
+  // upload new thumbnail and videoFile on Cloudinary
+  const updateThumbnail = await uploadOnCloudinar(thumbnailLocalPath);
+  if (!updateThumbnail) {
+    throw new ApiError(502, "Cloudinary error");
+  }
+  // Update DB
+  const update = await Video.findByIdAndUpdate(
+    videoId,
+    {
+      thumbnail: updateThumbnail.url,
+      thumbnail_public_id: updateThumbnail.public_id,
+    },
+    {
+      new: true,
+    }
+  );
+  if (!update) {
+    throw new ApiError(402, "Something went wrong while updating the DB");
+  }
+  // send response
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        thumbnail: update.thumbnail,
+        thumbnail_public_id: update.thumbnail_public_id,
+      },
+      "Thumbnail Updated Successfully"
+    )
+  );
+});
+
+const updateVideoFile = asyncHandler(async (req, res) => {
+  // get the video id from req.params
+  // validate video id
+  // get video from the DB using video id
+  // validate the video
+  // validate the user wheather is it the right user who is performing update functionality
+  // get the videoFile from req.file?.path if you want to update
+  // delete the thumbnail and videoFile from the cloudinary
+  // upload new thumbnail and videoFile on Cloudinary
+  // send response
+  //------------------------------//
+  // get the video id from req.params
+  const { videoId } = req.params;
+  // validate video id
+  if (!videoId) {
+    throw new ApiError(501, "Video Id is not found");
+  }
+  // get video from the DB using video id
+  const video = await Video.findById(videoId);
+  // validate the video
+  if (!video) {
+    throw new ApiError(501, "Video is not found");
+  }
+  // validate the user wheather is it the write user who is performing update functionality
+  if (video.owner.toString() !== req.user?._id.toString()) {
+    throw new ApiError(403, "You are not authorized to Update this video");
+  }
+  // get the thumbnail from req.file?.path if you want to update
+  const videoFileLocalPath = req.file?.path;
+  if (!videoFileLocalPath) {
+    throw new ApiError(502, "Thumbnail is missing");
+  }
+  // delete the videoFile from the cloudinary
+  if (video.videoFile_public_id) {
+    await cloudinary.uploader.destroy(video.videoFile_public_id);
+    console.log("Deleted From Cloudinary Successfully");
+  }
+
+  // upload new videoFile on Cloudinary
+  const updatevideoFile = await uploadOnCloudinar(videoFileLocalPath);
+  if (!updatevideoFile) {
+    throw new ApiError(502, "Cloudinary error");
+  }
+  // Update DB
+  const update = await Video.findByIdAndUpdate(
+    videoId,
+    {
+      videoFile: updatevideoFile.url,
+      videoFile_public_id: updatevideoFile.videoFile_public_id,
+    },
+    {
+      new: true,
+    }
+  );
+  if (!update) {
+    throw new ApiError(402, "Something went wrong while updating the DB");
+  }
+  // send response
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        videoFile: update.videoFile,
+        public_id: update.videoFile_public_id,
+      },
+      "videoFile Updated Successfully"
+    )
+  );
+});
+
+const updateVideo = asyncHandler(async (req, res) => {
+  // get the video id from req.params
+  // validate video id
+  // get video from the DB using video id
+  // validate the video
+  // validate the user wheather is it the write user who is performing update functionality
+  // get the title description if you want to update and validate them
+  // get the thumbnail and videoFile from req.files if you want to update
+  // delete the thumbnail and videoFile from the cloudinary
+  // upload new thumbnail and videoFile on Cloudinary
+  // send response
+  //-------------------------------------------//
+  // get the video id from req.params
+  const { videoId } = req.params;
+  // validate video id
+  if (!videoId) {
+    throw new ApiError(501, "Video Id is not found");
+  }
+  // get video from the DB using video id
+  const video = await Video.findById(videoId);
+  // validate the video
+  if (!video) {
+    throw new ApiError(501, "Video is not found");
+  }
+  // validate the user wheather is it the write user who is performing update functionality
+  if (video.owner.toString() !== req.user?._id.toString()) {
+    throw new ApiError(403, "You are not authorized to Update this video");
+  }
+  // get the title description if you want to update and validate them
+  const { title, description } = req.body;
+  if (!title || !description) {
+    throw new ApiError(401, "Nothing to update");
+  }
+  const updateVideoDetails = await Video.findByIdAndUpdate(
+    videoId,
+    {
+      title,
+      description,
+    },
+    {
+      new: true,
+    }
+  );
+  if (!updateVideoDetails) {
+    throw new ApiError(
+      501,
+      "Something went wrong while updating the video details"
+    );
+  }
+  // send response
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updateVideoDetails,
+        "Video Details Updated Successfully"
+      )
+    );
+});
 
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
@@ -280,7 +475,9 @@ export {
   getAllVideos,
   publishAVideo,
   getVideoById,
-  // updateVideo,
+  updateVideo,
   deleteVideo,
+  updateVideoThumbnail,
+  updateVideoFile,
   // togglePublishStatus,
 };
