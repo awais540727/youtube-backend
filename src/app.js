@@ -27,6 +27,8 @@ app.use("/api/v1/c", commentRoute);
 
 import tweetsRoute from "./routes/tweets.routes.js";
 app.use("/api/v1/t", tweetsRoute);
+import subscriptionRoute from "./routes/subscriptions.routes.js";
+app.use("/api/v1/channel", subscriptionRoute);
 
 // http://localhost:8000/api/v1/users/register
 
