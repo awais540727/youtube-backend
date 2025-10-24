@@ -24,6 +24,10 @@ app.use("/api/v1/videos", videoRouter);
 
 import commentRoute from "./routes/comments.routes.js";
 app.use("/api/v1/c", commentRoute);
+
+import tweetsRoute from "./routes/tweets.routes.js";
+app.use("/api/v1/t", tweetsRoute);
+
 // http://localhost:8000/api/v1/users/register
 
 export { app };
