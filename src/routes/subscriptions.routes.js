@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  getSubscribedChannels,
   getUserChannelSubscribers,
   // getSubscribedChannels, // GET all channels user subscribed to
   // getChannelSubscribers, // GET all subscribers of a channel
@@ -12,11 +13,13 @@ const router = Router();
 router.use(JwtVerify);
 
 // Subscribe or unsubscribe to a channel
-router.post("/addsub/:channelId", toggleSubscription);
+router.post("/add-sub/:channelId", toggleSubscription);
 
 // // Get all subscribers of a specific channel
 router.get("/get-subscribers/:channelId", getUserChannelSubscribers);
 
+// Get all channels that a user has subscribed to
+router.get("/get-channels-of-user/:userId", getSubscribedChannels);
 export default router;
 
 // import { Router } from "express";
