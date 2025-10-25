@@ -30,6 +30,8 @@ app.use("/api/v1/t", tweetsRoute);
 import subscriptionRoute from "./routes/subscriptions.routes.js";
 app.use("/api/v1/channel", subscriptionRoute);
 
+import playlistRoute from "./routes/playlists.routes.js";
+app.use("/api/v1/playlist", playlistRoute);
 // http://localhost:8000/api/v1/users/register
 
 export { app };
